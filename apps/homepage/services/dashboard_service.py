@@ -138,7 +138,7 @@ class DashboardService:
         self, qs: QuerySet[TelegramChannel]
     ) -> list[ChannelDTO]:
         """
-        Формирует список каналов с использованием чистых функций метрик.
+        Формирует список каналов с использованием чистых функций метрик
         """
         result = []
         thirty_days_ago = timezone.now() - timedelta(days=30)
