@@ -1,10 +1,8 @@
 import asyncio
 import logging
-import random
-import time
 
 from asgiref.sync import sync_to_async
-from celery import shared_task
+from celery import chord, group, shared_task
 from django.db import DatabaseError, IntegrityError
 from django.utils import timezone
 from telethon import TelegramClient
@@ -15,7 +13,6 @@ from apps.parser.parser import tg_parser
 from apps.parser.services.analysis import PostAnalysisService
 from apps.parser.services.metrics import (
     update_channels_citation_indices,
-    update_single_channel_citation_index,
 )
 from apps.parser.types import (
     ParsedChannelData,
@@ -26,7 +23,7 @@ from apps.parser.utils import get_telegram_credentials
 log = logging.getLogger(__name__)
 
 
-@shared_task
+@shared_task(rate_limit="5/m")
 def parse_channel(channel_id: int) -> None:
     """Celery task for channel parse"""
     try:
@@ -70,10 +67,6 @@ def parse_channel(channel_id: int) -> None:
                 await sync_to_async(save_channel_stats)(
                     channel_obj,
                     channel_data,
-                )
-                log.info(f"Updating citation index {channel_obj.channel_id}")
-                await sync_to_async(update_single_channel_citation_index)(
-                    channel_obj.channel_id
                 )
             except (DatabaseError, IntegrityError) as e:
                 log.error(
@@ -139,26 +132,16 @@ def save_channel_stats(
 
 @shared_task
 def parse_all_channels() -> None:
-    """Task for Celery: parse all channels from database"""
-    channels = TelegramChannel.objects.all()
+    channels = list(TelegramChannel.objects.all())
     if not channels:
-        log.warning("There are no channels")
         return
 
-    for channel in channels:
-        # start task for parsing
-        parse_channel.delay(channel.channel_id)  # type: ignore[attr-defined]
-        # add pause between parsing, 15s + random value
-        pause = 15 + random.uniform(0, 5)
-        log.info(
-            f"Started task for channel {channel.channel_id}, "
-            f"next one in {pause:.2f} s"
-            f"Started task for channel {channel.channel_id}, "
-            f"next one in {pause:.2f} s"
-        )
-        time.sleep(pause)
-    update_citation_indices_task.delay()  # type: ignore[attr-defined]
-    log.info("All parsing tasks scheduled. Citation index update task queued.")
+    # Создаем группу задач
+    job = group(parse_channel.s(channel.channel_id) for channel in channels)  # type: ignore
+
+    chord(job)(update_citation_indices_task.s())  # type: ignore
+
+    log.info(f"Workflow started: {len(channels)}")
 
 
 @shared_task

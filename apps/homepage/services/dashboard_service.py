@@ -150,6 +150,8 @@ class DashboardService:
             interactions = channel.avg_interactions or 0
             er = engagement_rate(interactions, views)
 
+            citation_index = getattr(channel, "citation_index", 0.0)
+
             # Данные для Growth 30d
             past_stat = (
                 channel.channelstats_set.filter(parsed_at__lte=thirty_days_ago)
@@ -170,6 +172,7 @@ class DashboardService:
                     views=views,
                     engagement=round(er * 100, 2),
                     growth=round(growth_pct, 2),
+                    citation_index=citation_index,
                     is_verified=channel.is_verified,
                 )
             )

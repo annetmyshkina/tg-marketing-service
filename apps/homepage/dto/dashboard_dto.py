@@ -22,6 +22,7 @@ class ChannelDTO(BaseModel):
     views: int = Field(ge=0)
     engagement: float = Field(ge=0)
     growth: float
+    citation_index: float = 0.0
     is_verified: bool = False
 
 
