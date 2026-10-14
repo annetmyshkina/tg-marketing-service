@@ -7,7 +7,7 @@ from apps.parser.models import TelegramChannel
 
 
 class ChannelVisibilityTest(TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.user = get_user_model().objects.create_user(
             username="visibility_test_user",
             email="visibility_test_user@example.com",
@@ -66,7 +66,7 @@ class ChannelVisibilityTest(TestCase):
             status=status,
         )
 
-    def test_catalogue_shows_only_public_channels(self):
+    def test_catalogue_shows_only_public_channels(self) -> None:
         from apps.parser.views import ParserListView
 
         visible_ids = set(
@@ -81,7 +81,7 @@ class ChannelVisibilityTest(TestCase):
             },
         )
 
-    def test_search_shows_only_public_channels(self):
+    def test_search_shows_only_public_channels(self) -> None:
         response = self.client.get(
             reverse("parser:channel_lookup"),
             {"q": "channel"},

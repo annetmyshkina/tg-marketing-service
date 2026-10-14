@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, cast
 
 from asgiref.sync import async_to_sync
 from django.contrib import messages
@@ -182,7 +182,7 @@ class ParserView(UserAuthenticationCheckMixin, FormView):
                 )
 
             ModerationRequest.objects.create(
-                submitted_by=self.request.user,
+                submitted_by=cast(User, self.request.user),
                 channel_identifier=identifier,
                 channel_by=channel,
                 category=category,
