@@ -29,6 +29,7 @@ from apps.parser.utils import (
     get_telegram_credentials,
     normalize_channel_username,
 )
+from apps.users.models import User
 from config.mixins import UserAuthenticationCheckMixin
 from config.renderers import render_inertia_from_dto
 
@@ -175,11 +176,6 @@ class ParserView(UserAuthenticationCheckMixin, FormView):
             # Saving data
             channel, created = self.save_channel(channel_data)
             self.save_stats(channel, channel_data)
-
-            if not self.request.user.is_authenticated:
-                raise PermissionError(
-                    "User must be authenticated to submit moderation request"
-                )
 
             ModerationRequest.objects.create(
                 submitted_by=cast(User, self.request.user),
