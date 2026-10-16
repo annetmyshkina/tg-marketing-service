@@ -136,7 +136,7 @@ def parse_all_channels() -> None:
     if not channels:
         return
 
-    # Создаем группу задач
+    # Создаем  группу задач
     job = group(parse_channel.s(channel.channel_id) for channel in channels)  # type: ignore
 
     chord(job)(update_citation_indices_task.s())  # type: ignore
