@@ -137,9 +137,9 @@ def parse_all_channels() -> None:
         return
 
     # Создаем  группу задач
-    job = group(parse_channel.s(channel.channel_id) for channel in channels)  # type: ignore
+    job = group(parse_channel.si(channel.channel_id) for channel in channels)  # type: ignore
 
-    chord(job)(update_citation_indices_task.s())  # type: ignore
+    chord(job)(update_citation_indices_task.si())  # type: ignore
 
     log.info(f"Workflow started: {len(channels)}")
 
