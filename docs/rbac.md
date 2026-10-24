@@ -81,7 +81,7 @@ role = request.role
 | `channel_moderator` | Channel Moderator |
 | `admin` | Admin |
 
-Роль `admin` создаётся сид-миграцией [`apps/users/migrations/0011_seed_admin_role.py`](apps/users/migrations/0011_seed_admin_role.py).
+Роль `admin` создаётся сид-миграцией [`apps/users/migrations/0014_seed_admin_role.py`](../apps/users/migrations/0014_seed_admin_role.py).
 
 ## Ограничение доступа во вью
 

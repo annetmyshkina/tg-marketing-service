@@ -645,7 +645,7 @@ class SharedAuthAndLogoutTest(InertiaAuthTestCase):
             ("partner", False, "partner", False),
             ("channel_moderator", False, "channel_moderator", False),
             ("admin", False, "admin", True),
-            ("user", True, "user", True),
+            ("user", True, "user", False),
             ("unknown", False, "user", False),
         ):
             with self.subTest(role=role, is_staff=is_staff):
