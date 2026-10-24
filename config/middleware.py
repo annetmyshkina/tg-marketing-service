@@ -46,12 +46,7 @@ class SharedInertiaPropsMiddleware:
         if not request.user.is_authenticated:
             return False
 
-        role = self._get_role(request)
-        return (
-            role == UserRole.ADMIN
-            or getattr(request.user, "is_staff", False)
-            or getattr(request.user, "is_superuser", False)
-        )
+        return self._get_role(request) == UserRole.ADMIN
 
     def _get_auth_payload(self, request: HttpRequest) -> dict[str, Any] | None:
         if not request.user.is_authenticated:
