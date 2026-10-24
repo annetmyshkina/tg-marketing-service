@@ -47,9 +47,8 @@ def assign_role_channel_moderator(
     if instance.status == PartnerProfile.STATUS_CHOICES[0][0]:
         user = instance.user
 
-        if user.role != UserRole.PARTNER:
+        if user.role not in {UserRole.ADMIN, UserRole.PARTNER}:
             user.role = UserRole.PARTNER
-
             user.save(update_fields=["role"])
 
 
