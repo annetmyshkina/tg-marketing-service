@@ -1,6 +1,7 @@
 import logging
 from typing import Any
 
+from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -64,39 +65,40 @@ def assign_role_moderator_channel(
     **kwargs: Any,
 ) -> None:
     """Назначает владельцу канала роль модератора."""
-    if not created or not instance.is_owner:
+    if not instance.is_owner:
         return
 
     user = instance.user
 
-    # Партнёр сохраняет свою роль.
-    if user.role in (UserRole.CHANNEL_MODERATOR, UserRole.PARTNER):
+    # Партнёр, модератор и админ сохраняют свою роль
+    if user.role in (
+        UserRole.CHANNEL_MODERATOR,
+        UserRole.PARTNER,
+        UserRole.ADMIN,
+    ):
         return
 
-    # Получаем роль или создаём её, если она ещё не зарегистрирована.
-    moderator_role, _ = Role.objects.get_or_create(
-        code=UserRole.CHANNEL_MODERATOR,
-        defaults={"name": "Модератор канала"},
-    )
+    with transaction.atomic():
+        # Получаем роль или создаём её, если она ещё не зарегистрирована.
+        moderator_role, _ = Role.objects.get_or_create(
+            code=UserRole.CHANNEL_MODERATOR,
+            defaults={"name": "Модератор канала"},
+        )
 
-    # Закрываем предыдущую роль в истории, если она существует.
-    old_role = Role.objects.filter(code=user.role).first()
-
-    if old_role:
-        UserRoleHistory.objects.create(
+        # Закрываем все активные записи истории прежних ролей.
+        UserRoleHistory.objects.filter(
             user=user,
-            role=old_role,
+            end_date__isnull=True,
+        ).update(
             end_date=timezone.now(),
             reason="Назначена роль модератора канала",
         )
 
-    # Назначаем новую роль пользователю.
-    user.role = moderator_role.code
-    user.save(update_fields=["role"])
+        user.role = moderator_role.code
+        user.save(update_fields=["role"])
 
-    # Записываем назначение новой роли в историю.
-    UserRoleHistory.objects.create(
-        user=user,
-        role=moderator_role,
-        reason="Назначена роль модератора канала",
-    )
+        UserRoleHistory.objects.create(
+            user=user,
+            role=moderator_role,
+            reason="Назначена роль модератора канала",
+        )

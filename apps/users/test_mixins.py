@@ -60,6 +60,30 @@ class ChannelModeratorRequiredMixinTest(TestCase):
             response.json()["props"]["auth"]["role"],
             UserRole.CHANNEL_MODERATOR,
         )
+        self.assertFalse(response.json()["props"]["is_admin"])
+
+    def test_partner_owner_can_access_view(self) -> None:
+        """Партнёр-владелец проходит guard."""
+        self.user.role = UserRole.PARTNER
+        self.user.save(update_fields=["role"])
+        ChannelModerator.objects.create(
+            user=self.user,
+            channel=self.channel,
+            is_owner=True,
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            "/test-moderator/",
+            HTTP_X_INERTIA="true",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()["props"]["auth"]["role"],
+            UserRole.PARTNER,
+        )
+        self.assertFalse(response.json()["props"]["is_admin"])
 
     def test_user_with_wrong_role_is_denied(self) -> None:
         self.user.role = UserRole.USER

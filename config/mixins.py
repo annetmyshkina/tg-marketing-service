@@ -148,7 +148,7 @@ class PartnerRequiredMixin(RoleRequiredMixin):
 class ChannelModeratorRequiredMixin(RoleRequiredMixin):
     """Только для модераторов каналов"""
 
-    allowed_roles = [UserRole.CHANNEL_MODERATOR]
+    allowed_roles = [UserRole.CHANNEL_MODERATOR, UserRole.PARTNER]
     permission_denied_message = "Доступ только для модераторов каналов"
 
     def _test_role(self, request: HttpRequest) -> bool:
